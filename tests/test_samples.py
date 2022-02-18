@@ -1,16 +1,16 @@
 import os
 from os.path import splitext, join
 from pathlib import PurePath
+
 from satisfactory.main import run
 
-from satisfactory.save import CompressedSave
-
-sample_root = PurePath(r"../../../sample")
+sample_root = PurePath(r"../sample")
 update_5 = sample_root / "Update 5"
 update_4 = sample_root / "Update 4"
 
 
-def debug_test_samples(src: str):
+def debug_test_samples(src: os.PathLike = None):
+    src = src or sample_root
     for root, folder, files in os.walk(src):
         for file in files:
             full_file = join(root, file)
@@ -20,4 +20,6 @@ def debug_test_samples(src: str):
 
 
 if __name__ == '__main__':
-    debug_test_samples(update_4)
+    debug_test_samples()
+
+# currently, not an ACTUAL unittest, TODO

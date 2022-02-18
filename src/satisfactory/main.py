@@ -23,9 +23,6 @@ def dataclass2safedict(obj):
         return type(obj)(dataclass2safedict(v) for v in obj)
     elif isinstance(obj, dict):
         return [{"Key": dataclass2safedict(k), "Value": dataclass2safedict(v)} for k, v in obj.items()]
-        # return type(obj)((dataclass2safedict(k, dict_factory),
-        #                   dataclass2safedict(v, dict_factory))
-        #                  for k, v in obj.items())
     else:
         return obj
 

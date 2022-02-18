@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from typing import List, ForwardRef, BinaryIO, Dict, Callable
 
-from StructIO.structio import StructIO
-from StructIO.structx import Struct
+from archive_tools.structx import Struct
+from archive_tools.vstruct import VStruct
+
 from .shared import NonePropertyError
 
 Property = ForwardRef("Property")
@@ -53,21 +54,17 @@ class Vector4(Vector3):
 
 @dataclass(unsafe_hash=True)
 class ObjectReference:
+    LAYOUT = VStruct("2v")
     level: str
     path: str
 
     @classmethod
     def unpack(cls, stream: BinaryIO) -> 'ObjectReference':
-        with StructIO(stream) as reader:
-            level = reader.unpack_len_encoded_str()
-            path = reader.unpack_len_encoded_str()
-            return ObjectReference(level, path)
+        args = cls.LAYOUT.unpack_stream(stream)
+        return ObjectReference(*args)
 
     def pack(self, stream: BinaryIO) -> int:
-        with StructIO(stream) as writer:
-            written = writer.pack_len_encoded_str(self.level)
-            written += writer.pack_len_encoded_str(self.path)
-            return written
+        return self.LAYOUT.pack_stream(stream, self.level, self.path)
 
 
 @dataclass(unsafe_hash=True)
@@ -81,6 +78,8 @@ class DateTime:
 
 @dataclass(unsafe_hash=True)
 class Color32:
+    LAYOUT = Struct("4c")
+
     r: int
     g: int
     b: int
@@ -96,19 +95,18 @@ class Color32:
 
     @classmethod
     def unpack(cls, stream: BinaryIO) -> 'Color32':
-        with StructIO(stream) as reader:
-            rgba = reader.unpack("4c")
-            return Color32(*rgba)
+        rgba = cls.LAYOUT.unpack_stream(stream)
+        return Color32(*rgba)
 
     def pack(self, stream: BinaryIO) -> int:
         if not self.is_valid:
             raise ValueError(self)
-        with StructIO(stream) as writer:
-            return writer.pack("4c", (self.r, self.g, self.b, self.a))
+        return self.LAYOUT.pack_stream(stream, self.r, self.g, self.b, self.a)
 
 
 @dataclass(unsafe_hash=True)
 class Color:
+    LAYOUT = Struct("4f")
     r: float
     g: float
     b: float
@@ -124,15 +122,13 @@ class Color:
 
     @classmethod
     def unpack(cls, stream: BinaryIO) -> 'Color':
-        with StructIO(stream) as reader:
-            rgba = reader.unpack("4f")
-            return Color(*rgba)
+        rgba = cls.LAYOUT.unpack_stream(stream)
+        return Color(*rgba)
 
     def pack(self, stream: BinaryIO) -> int:
         if not self.is_valid:
             raise ValueError(self)
-        with StructIO(stream) as writer:
-            return writer.pack("4f", (self.r, self.g, self.b, self.a))
+        return self.LAYOUT.pack_stream(stream, self.r, self.g, self.b, self.a)
 
 
 Quaternion = Vector4
@@ -191,13 +187,13 @@ class Box(Structure):  # Probably an AABB (Axis-Aligned Bounding Box), unk could
 
 @dataclass(unsafe_hash=True)
 class FluidBox(Structure):
+    LAYOUT = Struct("f")
     unk: float
 
     @classmethod
     def unpack(cls, stream: BinaryIO) -> 'FluidBox':
-        with StructIO(stream) as reader:
-            unk = reader.unpack("f")
-            return FluidBox(None, unk)
+        unk = cls.LAYOUT.unpack_stream(stream)
+        return FluidBox(None,unk)
 
 
 @dataclass(unsafe_hash=True)
@@ -212,6 +208,7 @@ class GuidStructure(Structure):
 
 @dataclass(unsafe_hash=True)
 class InventoryItem(Structure):
+    LAYOUT = VStruct("i3v")
     a: int
     item_type: str
     b: str
@@ -219,13 +216,8 @@ class InventoryItem(Structure):
 
     @classmethod
     def unpack(cls, stream: BinaryIO) -> 'InventoryItem':
-        with StructIO(stream) as reader:
-            a = reader.unpack("i")
-            item_type = reader.unpack_len_encoded_str()
-            b = reader.unpack_len_encoded_str()
-            c = reader.unpack_len_encoded_str()
-
-        return InventoryItem(None, a, item_type, b, c)
+        args = cls.LAYOUT.unpack_stream(stream)
+        return InventoryItem(None, *args)
 
 
 _unpack_map: Dict[str, Callable] = {

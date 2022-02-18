@@ -2,10 +2,10 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import BinaryIO, List, Callable, Dict, Tuple, Any, Union, ClassVar, Optional
 
-from StructIO import structx
-from StructIO.structio import as_hex_adr, BinaryWindow, end_of_stream
-from StructIO.structx import Struct
-from StructIO.vstruct import VStruct
+from archive_tools import structx
+from archive_tools.structio import BinaryWindow, end_of_stream, stream2hex
+from archive_tools.structx import Struct
+from archive_tools.vstruct import VStruct
 from .shared import NonePropertyError, buffer_to_str
 from .structures import Structure, DynamicStructure
 
@@ -93,10 +93,7 @@ class Property:
 
     @classmethod
     def unpack(cls, stream: BinaryIO) -> 'Property':
-        if isinstance(stream, BinaryWindow):
-            start = stream.abs_tell()  # Exclusively for Error raising purposes
-        else:
-            start = stream.tell()
+        start = stream2hex(stream)
         header = PropertyHeader.unpack(stream)
 
         generic_unpacker = _unpack_map.get(header.property_type)
@@ -104,7 +101,7 @@ class Property:
         data_unpacker = _unpack_data_map.get(header.property_type)
 
         if not generic_unpacker and (not data_unpacker or not subheader_unpacker):
-            raise NotImplementedError("Cant unpack property of type:", header.property_type.value, "@", as_hex_adr(start), "No unpacker was available!")
+            raise NotImplementedError("Cant unpack property of type:", header.property_type.value, "@", start, "No unpacker was available!")
 
         if generic_unpacker:
             subheader = None
