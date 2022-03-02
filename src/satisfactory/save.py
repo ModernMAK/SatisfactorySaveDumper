@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from io import BytesIO
 from typing import BinaryIO, List
 
-from archive_tools.structio import BinaryWindow, end_of_stream, StreamPtr
-from archive_tools.vstruct import VStruct
+from serialization_tools.ioutil import BinaryWindow, end_of_stream, StreamPtr, has_data
+from serialization_tools.vstruct import VStruct
 from .properties import WorldObjectProperties
 from .shared import buffer_to_str
 from .structures import Vector4, Vector3, ObjectReference, Property
@@ -134,7 +134,7 @@ class DataWorldObject(WorldObject):
 
             if len(excess) > 0:
                 self.excess_data = excess
-            assert end_of_stream(window)
+            assert not has_data(window)
 
 
 @dataclass

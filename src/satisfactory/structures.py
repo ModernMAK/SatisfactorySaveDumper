@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import List, ForwardRef, BinaryIO, Dict, Callable
 
-from archive_tools.structx import Struct
-from archive_tools.vstruct import VStruct
+from serialization_tools.structx import Struct
+from serialization_tools.vstruct import VStruct
 
 from .shared import NonePropertyError
 

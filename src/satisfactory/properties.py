@@ -2,10 +2,10 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import BinaryIO, List, Callable, Dict, Tuple, Any, Union, ClassVar, Optional
 
-from archive_tools import structx
-from archive_tools.structio import BinaryWindow, end_of_stream, stream2hex
-from archive_tools.structx import Struct
-from archive_tools.vstruct import VStruct
+from serialization_tools import structx
+from serialization_tools.ioutil import BinaryWindow, end_of_stream, stream2hex, has_data
+from serialization_tools.structx import Struct
+from serialization_tools.vstruct import VStruct
 from .shared import NonePropertyError, buffer_to_str
 from .structures import Structure, DynamicStructure
 
@@ -82,7 +82,7 @@ class PropertyWindow(BinaryWindow):
             raise
         else:
             if self._assert_eos:
-                assert end_of_stream(self)
+                assert not has_data(self)
 
 
 @dataclass(unsafe_hash=True)
